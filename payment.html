@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html >
+<head>
+    <meta charset="UTF-8">
+ 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://api.mondido.com/v2/mondido.js?merchant_id=3"> </script>
+    <script src="https://blueimp.github.io/JavaScript-MD5/js/md5.js"></script>
+    <script src="https://s3-eu-west-1.amazonaws.com/mondido/www/js/validator.js"> </script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <title>FELICIA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="checkbox.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style2.css">
+<script>
+
+    var onSuccess = function (transaction) {
+        if(window.mondido.hasCallback){
+            return;
+        }
+        $('body').removeClass("loading");
+        alert('Thank you for the payment!, look in the debug console for details');
+        if(console){
+            console.log(transaction);
+        }
+        window.mondido.hasCallback = true;
+    };
+    var onError = function (error,data) {
+        if(window.mondido.hasCallback){
+            return;
+        }
+        $('body').removeClass("loading");
+        var desc = "";
+        if (data != null) {
+            desc = data.description;
+            alert(desc);
+        }
+        if(console){
+            console.log(data);
+        }
+        window.mondido.hasCallback = true;
+    };
+
+    var onBefore = function(){
+        window.mondido = {hasCallback: false};
+        $('body').addClass("loading");
+    };
+
+    $('#mondidopayform')
+        .mondido({type:"ajax"})
+        .on('payment:before', onBefore)
+        .on('payment:success', onSuccess)
+        .on('payment:fail', onError);
+    $('#btnPay').on('click',function(e){
+        return validateInlineForm();
+    });
+
+    var payment_ref = Math.floor((Math.random() * 10000) + 1).toString(); //random payment reference
+    var secret = '$2a$10$k/wS5qecZLyMmqo0e8GV9.'; // ssshhh, this is the secret.
+    var merchant_id = "3";
+    var customer_ref = "";
+    var amount = "1.00";
+    var h_str = merchant_id+payment_ref+customer_ref+amount+"eur"+"test"+secret;
+    var hash = md5(h_str);
+
+    $('input[name="merchant_id"]').val(merchant_id);
+    $('input[name="payment_ref"]').val(payment_ref);
+    $('input[name="hash"]').val(hash);
+    $('input[name="amount"]').val(amount);
+
+    $('.storeCardInfo').on('click', function(){
+        alert('Click to store card information for future transactions')
+    });
+
+    function validateInlineForm() {
+        var checks = true;
+        var errString = 'All fields need to be filled. What\'s missing is:\n';
+
+        if (!ccvalid) {
+            errString += "Card number, ";
+            checks = false;
+        }
+        if (!cardholdervalid) {
+            errString += "Name, ";
+            checks = false;
+        }
+        if (!cardcvvvalid) {
+            errString += "CVV-code, ";
+            checks = false;
+        }
+        if (!cardexpiryvaid) {
+            errString += "Expiry";
+            checks = false;
+        }
+        if (!checks) {
+            alert(errString.removeEnd(', '));
+            $('body').removeClass("loading");
+            return false;
+        }
+        return true;
+    }
+</script>
+
+</head>
+
+<body>
+<div class="container">
+    <div class="form-signin checkout_payment_option selected mondidojs">
+        <div class="container-bb">
+            <div class="row-bb">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <form id="mondidopayform">
+                        <div class="wrp">
+                            <div id="addCard">
+                                <div class="panel">
+
+                                    <div class="form-group col-lg-12">
+                                        <label>Card Holder Name</label>
+                                        <input type="text" class="form-control" name="card_holder" style="width:100%;" placeholder="Firstname Lastname">
+                                    </div>
+                                </div>
+                                <div class="panel">
+                                    <div class="col-sm-5 form-group">
+                                        <label>Card Number</label>
+                                        <input type="text" class="form-control" data-encrypted-attribute="card_number" style="width:100%;" placeholder="4111111111111111">
+                                    </div>
+                                    <div class="col-sm-3 col-xs-6 form-group third float-left">
+                                        <label>CVV</label>
+                                        <input type="text" class="form-control" data-encrypted-attribute="card_cvv" style="width:90%;" placeholder="000">
+                                    </div>
+                                    <div class="col-sm-2 col-xs-3 form-group third float-left">
+                                        <label>Month</label>
+                                        <input type="text" name="expMM" class="form-control" maxlength="2" style="width:90%;" placeholder="01">
+                                    </div>
+                                    <div class="col-sm-2 col-xs-3 form-group third float-left">
+                                        <label>Year</label>
+                                        <input type="text" name="expYY" class="form-control" maxlength="2" style="width:90%;" placeholder="15">
+                                    </div>
+                                </div>
+                                <div class="stripes bottom"> </div>
+
+                                <div class="clear">
+                                </div>
+                                <div>
+                                    <div>
+                                        <img alt="Mastercard" class="card_mastercard card_icon" src="https://raw.githubusercontent.com/Mondido/mondido-js/master/images/mastercard.png">
+                                        <img alt="Visa" class="card_visa card_icon" src="https://raw.githubusercontent.com/Mondido/mondido-js/master/images/visa.png">
+                                        <img alt="Amex"  class="card_amex card_icon" src="https://raw.githubusercontent.com/Mondido/mondido-js/master/images/amex.png">
+                                        <img alt="Discover" class="card_discover card_icon" src="https://raw.githubusercontent.com/Mondido/mondido-js/master/images/discover.png">
+                                        <img alt="Maestro" class="card_maestro  card_icon" src="https://raw.githubusercontent.com/Mondido/mondido-js/master/images/maestro.png">
+                                    </div>
+                                </div>
+                                <a href="index.html" class="btn btn-success" > Complete Registration</a>
+
+                            </div>
+
+                            <!-- order data -->
+                            <input type="hidden" data-encrypted-attribute="card_type" value="" />
+
+                            <input type="hidden" data-encrypted-attribute="card_expiry" value=""/>
+                            <input type="hidden" name="amount" value="1.00" />
+                            <input type="hidden" name="currency" value="EUR" />
+                            <input type="hidden" name="test" value="true" />
+                            <input type="hidden" name="metadata" value='{"products":[{"id":"1","name":"Nice Shoe","price":"1.00","qty":"1","url":"https://mysite.com/product/1"}],"user":{"email":"jd@email.com"}}' />
+                            <input type="hidden" name="merchant_id" value="" />
+                            <input type="hidden" name="payment_ref" value="" />
+                            <input type="hidden" name="locale" value="en" />
+                            <input type="hidden" name="hash" value="" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<p></p>
+<div class="container">
+    <div class="form-signin checkout_payment_option selected mondidojs">
+        <div class="container-bb">
+            <div class="row-bb">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <form id="mondidopayform">
+                        <div class="wrp">
+                            <div id="addCard">
+                                <div class="panel">
+
+                                    <div class="form-group col-lg-12">
+                                        <label>Paypal Account</label>
+                                        <input type="text" class="form-control" name="card_holder" style="width:100%;" placeholder="paypal account">
+                                    </div>
+                                </div>
+                                <div class="panel">
+                                    <div class="col-sm-5 form-group">
+                                        <label>password</label>
+                                        <input type="password" class="form-control" data-encrypted-attribute="card_number" style="width:100%;" placeholder="password">
+                                    </div>
+
+                                </div>
+                                <div class="stripes bottom"> </div>
+
+                                <div class="clear">
+                                </div>
+                                <div>
+                                    <div style="text-align: center;">
+                                        <img alt="PayPal icon"  src="https://lh3.googleusercontent.com/iQ8f5plIFy9rrY46Q2TNRwq_8nCvh9LZVwytqMBpOEcfnIU3vTkICQ6L1-RInWS93oQg=w170">
+
+                                    </div>
+                                </div>
+                                <a href="index.html" class="btn btn-success" > Complete Registration</a>
+
+                            </div>
+
+
+
+
+                            <!-- order data -->
+                            <input type="hidden" data-encrypted-attribute="card_type" value="" />
+
+                            <input type="hidden" data-encrypted-attribute="card_expiry" value=""/>
+                            <input type="hidden" name="amount" value="1.00" />
+                            <input type="hidden" name="currency" value="EUR" />
+                            <input type="hidden" name="test" value="true" />
+                            <input type="hidden" name="metadata" value='{"products":[{"id":"1","name":"Nice Shoe","price":"1.00","qty":"1","url":"https://mysite.com/product/1"}],"user":{"email":"jd@email.com"}}' />
+                            <input type="hidden" name="merchant_id" value="" />
+                            <input type="hidden" name="payment_ref" value="" />
+                            <input type="hidden" name="locale" value="en" />
+                            <input type="hidden" name="hash" value="" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="container">
+    <div class="form-signin checkout_payment_option selected mondidojs">
+        <div class="container-bb">
+            <div class="row-bb">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <form id="mondidopayform">
+                        <div class="wrp">
+                            <div id="addCard">
+
+                                <div class="panel">
+                                    <div class="list-group">
+
+
+                                        <a style=" pointer-events: none;
+   cursor: default;" class="list-group-item list-group-item-action flex-column align-items-start active">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1">S package</h5>
+                                                <small>Price: 10$</small>
+                                            </div>
+
+                                            <small>KM: 70</small>
+
+
+
+                                        </a>
+                                        <hr>
+                                        <a  pointer-events: none;
+                                            cursor: default; class="list-group-item list-group-item-action flex-column align-items-start">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1">M package</h5>
+                                                <small class="text-muted">Price: 20$</small>
+                                            </div>
+                                            <small>KM: 70</small>
+                                        </a>
+                                        <hr>
+                                    
+                            <hr>
+                                        <a  pointer-events: none;
+                                            cursor: default; class="list-group-item list-group-item-action flex-column align-items-start">
+                                            <div class="btn-group" data-toggle="buttons">
+                                                <label class="btn btn-primary active">
+                                                    <input type="radio" name="options" id="option1" autocomplete="off" checked> S package
+                                                </label>
+                                            </div>
+
+
+
+                                        </a>
+
+                                        <a  pointer-events: none;
+                                            cursor: default; class="list-group-item list-group-item-action flex-column align-items-start">
+                                            <div class="btn-group" data-toggle="buttons" style="float: right">
+                                                <label class="btn btn-primary active">
+                                                    <input type="radio" name="options" id="option1" autocomplete="off" checked> M package
+                                                </label>
+                                            </div>
+
+
+
+                                        </a>
+                                  
+
+                                    </div>
+
+                                </div>
+
+                                <div class="stripes bottom"> </div>
+
+                                <div class="clear">
+                                </div>
+                                <div>
+                                    <div style="text-align: center;">
+                                <input type="text" placeholder="PIN">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="text-align: center;">
+                                        <img alt="PaySafe"  src="https://www.cardfellow.com/wp-content/themes/genesis-sample/logo_images/paysafe-logo.jpg">
+
+                                    </div>
+                                </div>
+                                <a href="index.html" class="btn btn-success" > Complete Registration</a>
+
+                            </div>
+
+
+							&nbsp
+							<a class="btn btn-success" href="index.html">Other</a>
+						
+	
+                            <!-- order data -->
+                            <input type="hidden" data-encrypted-attribute="card_type" value="" />
+
+                            <input type="hidden" data-encrypted-attribute="card_expiry" value=""/>
+                            <input type="hidden" name="amount" value="1.00" />
+                            <input type="hidden" name="currency" value="EUR" />
+                            <input type="hidden" name="test" value="true" />
+                            <input type="hidden" name="metadata" value='{"products":[{"id":"1","name":"Nice Shoe","price":"1.00","qty":"1","url":"https://mysite.com/product/1"}],"user":{"email":"jd@email.com"}}' />
+                            <input type="hidden" name="merchant_id" value="" />
+                            <input type="hidden" name="payment_ref" value="" />
+                            <input type="hidden" name="locale" value="en" />
+                            <input type="hidden" name="hash" value="" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="loadingmodal"></div>
+
+<script src="js/index.js"></script>
+<script src="js/index.js"></script>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="bootstrap-assets/js/bootstrap.min.js"></script>
+<script src="js/custom.js"></script>
+<!-- JS PLUGINS -->
+<script src="plugins/owl-carousel/owl.carousel.min.js"></script>
+<script src="js/jquery.easing.min.js"></script>
+<script src="plugins/waypoints/jquery.waypoints.min.js"></script>
+<script src="plugins/countTo/jquery.countTo.js"></script>
+<script src="plugins/inview/jquery.inview.min.js"></script>
+<script src="plugins/Lightbox/dist/js/lightbox.min.js"></script>
+<script src="plugins/WOW/dist/wow.min.js"></script>
+<!-- GOOGLE MAP -->
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+
+</body>
+</html>

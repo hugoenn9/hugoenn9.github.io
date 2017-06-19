@@ -1,0 +1,2 @@
+Once you unzip the Felicia folder, go to "template-assets" and double-click on "index".
+This will launch the website.
